@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quran Recitation Player</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            max-width: 90%;
+            width: 400px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        p {
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+
+        select, button {
+            font-family: 'Poppins', sans-serif;
+            font-size: 16px;
+            padding: 10px 20px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        select {
+            text-align-last: center;
+        }
+
+        select:hover, button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        button {
+            background: #4CAF50;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        #audioPlayer {
+            margin-top: 30px;
+            width: 100%;
+        }
+
+        .timeline {
+            margin-top: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            height: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress {
+            background: #4CAF50;
+            height: 100%;
+            width: 0;
+            transition: width 0.5s ease;
+        }
+
+        .surah-info {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .note {
+            margin-top: 20px;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Quran Recitation Player</h1>
+        <p>Choose a reciter and play Quran recitations overnight.</p>
+        
+        <select id="reciterSelect">
+            <option value="https://server8.mp3quran.net/afs/">Mishary Rashid Alafasy</option>
+            <option value="https://server7.mp3quran.net/s_gmd/">Saad Al Ghamdi</option>
+            <option value="https://server11.mp3quran.net/minsh/">Muhammad Siddiq Al-Minshawi</option>
+            <option value="https://server12.mp3quran.net/basit/Almusshaf-Al-Mojawwad/">Abdul Basit Abdus Samad</option>
+            <option value="https://server12.mp3quran.net/maher/">Maher Al Mueaqly</option>
+            <option value="https://server11.mp3quran.net/yasser/">Yasser Al-Dosari</option>
+            <option value="https://server12.mp3quran.net/ahmad_huth/">Ahmad Al Ajmi</option>
+        </select>
+        
+        <button onclick="playQuran()" id="playBtn">Play</button>
+        <button onclick="stopQuran()" id="stopBtn" style="display:none;">Stop</button>
+        
+        <audio id="audioPlayer"></audio>
+
+        <div class="timeline">
+            <div class="progress" id="progressBar"></div>
+        </div>
+        <div class="surah-info" id="surahInfo">Surah 1 of 114</div>
+        
+        <div class="note">Note: To play overnight, ensure your device settings allow the screen to stay on or audio to play in the background.</div>
+    </div>
+
+    <script>
+        const audioPlayer = document.getElementById('audioPlayer');
+        const reciterSelect = document.getElementById('reciterSelect');
+        const container = document.querySelector('.container');
+        const playBtn = document.getElementById('playBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const progressBar = document.getElementById('progressBar');
+        const surahInfo = document.getElementById('surahInfo');
+        let currentSurah = 1;
+        let isPlaying = false;
+
+        function playQuran() {
+            if (!isPlaying) {
+                isPlaying = true;
+                playSurah();
+                playBtn.style.display = 'none';
+                stopBtn.style.display = 'block';
+            }
+        }
+
+        function stopQuran() {
+            isPlaying = false;
+            audioPlayer.pause();
+            audioPlayer.currentTime = 0;
+            playBtn.style.display = 'block';
+            stopBtn.style.display = 'none';
+            updateProgress();
+        }
+
+        function playSurah() {
+            if (isPlaying) {
+                const reciterUrl = reciterSelect.value;
+                const surahNumber = currentSurah.toString().padStart(3, '0');
+                audioPlayer.src = `${reciterUrl}${surahNumber}.mp3`;
+                audioPlayer.play();
+                updateSurahInfo();
+
+                audioPlayer.onended = () => {
+                    currentSurah++;
+                    if (currentSurah > 114) {
+                        currentSurah = 1;
+                    }
+                    playSurah();
+                };
+            }
+        }
+
+        function updateProgress() {
+            const progress = (currentSurah - 1) / 114 * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function updateSurahInfo() {
+            surahInfo.textContent = `Surah ${currentSurah} of 114`;
+            updateProgress();
+        }
+
+        audioPlayer.addEventListener('timeupdate', () => {
+            const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+            progressBar.style.width = `${progress}%`;
+        });
+
+        // Add transition effect when changing reciters
+        reciterSelect.addEventListener('change', () => {
+            container.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                container.style.transform = 'scale(1)';
+            }, 200);
+        });
+    </script>
+</body>
+</html>
